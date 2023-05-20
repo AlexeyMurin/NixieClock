@@ -1123,7 +1123,6 @@ void modesChanger()
 {
   if (editMode == true) return;
   static unsigned long lastTimeModeChanged = millis();
-  static unsigned long lastTimeAntiPoisoningIterate = millis();
   static int transnumber = 0;
   if ((millis() - lastTimeModeChanged) > modesChangePeriod)
   {
@@ -1150,6 +1149,100 @@ void modesChanger()
     }
     modeChangedByUser = false;
   }
+
+  RunTransition3(lastTimeModeChanged);
+}
+
+void RunTransition3(unsigned long lastTimeModeChanged)
+{
+  static unsigned long lastTimeAntiPoisoningIterate = millis();
+
+  if ((millis() - lastTimeModeChanged) < 2000)
+  {
+    if ((millis() - lastTimeAntiPoisoningIterate) > 50)
+    {
+      lastTimeAntiPoisoningIterate = millis();
+      if (TempPresent)
+      {
+        if (menuPosition == TimeIndex) stringToDisplay = antiPoisoning3( getTimeNow());
+        if (menuPosition == DateIndex) stringToDisplay = antiPoisoning3(PreZero(day()) + PreZero(month()) + PreZero(year() % 1000) );
+        if (menuPosition == TemperatureIndex) stringToDisplay = antiPoisoning3(updateTemperatureString(getTemperature(value[DegreesFormatIndex])));
+      } else
+      {
+        if (menuPosition == TimeIndex) stringToDisplay = antiPoisoning3(getTimeNow());
+        if (menuPosition == DateIndex) stringToDisplay = antiPoisoning3(PreZero(day()) + PreZero(month()) + PreZero(year() % 1000) );
+      }
+      // Serial.println("StrTDInToModeChng="+stringToDisplay);
+    }
+  } else
+  {
+    transactionInProgress = false;
+  }
+}
+
+String antiPoisoning3(String toStr)
+{
+  //static bool transactionInProgress=false;
+  //byte fromDigits[6];
+  static byte freeze[tubesQty];
+  static byte iteration = 0;
+  static byte steps[] = {3, 8, 9, 4, 0, 5, 7, 2, 6, 1};
+  static int8_t step = 0;
+  static int8_t inc = 1;
+  static byte currentDigit;
+  if (!transactionInProgress)
+  {
+    transactionInProgress = true;
+    iteration = 0;
+    step = 0;
+    inc = 1;
+    for (int i = 0; i < tubesQty; i++)
+    {
+      freeze[i] = 0xff;
+    }
+  }
+
+  currentDigit = steps[step];
+
+  // freeze digits at final run
+  if (iteration >=30)
+  {
+    for (int i = 0; i < tubesQty; i++)
+    {
+      if (toStr.substring(i, i + 1).toInt() == currentDigit)
+      {
+        freeze[i] = currentDigit;
+      }
+    }
+  }
+
+  step += inc;
+  if (step == 10 | step == -1)
+  {
+    inc *= -1;
+    step += inc;
+  }
+
+  iteration++;
+  if (iteration == 40)
+  {
+    iteration = 0;
+    transactionInProgress = false;
+  }
+
+  String tmpStr;
+  for (int i = 0; i < tubesQty; i++)
+  {
+    tmpStr += freeze[i] < 10 ? freeze[i]: currentDigit;
+  }
+
+  return tmpStr;
+}
+
+void RunTransition2(unsigned long lastTimeModeChanged)
+{
+  static unsigned long lastTimeAntiPoisoningIterate = millis();
+
   if ((millis() - lastTimeModeChanged) < 2000)
   {
     if ((millis() - lastTimeAntiPoisoningIterate) > 100)
