@@ -11,12 +11,14 @@
 #define UpperDotsMask 0x2000000
 #define LowerDotsMask 0x1000000
 
+#define DotsPwmConst 6
+
 void doIndication()
 {
   static byte AnodesGroup=1;
   unsigned long AnodesGroupMask;
   static unsigned long lastTimeInterval1Started;
-  if ((micros()-lastTimeInterval1Started)>5000)
+  if ((micros()-lastTimeInterval1Started)>2500)
   {
    lastTimeInterval1Started=micros();
    unsigned long var32=0;
@@ -40,11 +42,18 @@ void doIndication()
 
    var32 |= tmpVar<<10;
 
+  static byte DotsPwm = 1;
+  if ((DotsPwm++ % DotsPwmConst) == 0)
+  {
+    DotsPwm = 1;
    if (LD) var32|=LowerDotsMask;
-    else var32&=~LowerDotsMask;
-  
    if (UD) var32|=UpperDotsMask;
-    else var32&=~UpperDotsMask; 
+  }
+  else
+  {
+    var32&=~LowerDotsMask;
+    var32&=~UpperDotsMask;
+  }
 
    digitalWrite(LEpin, LOW);    // allow data input (Transparent mode)
    
