@@ -783,8 +783,18 @@ void doTest()
 
 void doDotBlink()
 {
-  if (second() % 2 == 0) dotPattern = B11000000;
-  else dotPattern = B00000000;
+  static byte current_second = 0;
+  static long half_second_millis = 0;
+  if (current_second != (byte)second())
+  {
+    half_second_millis = millis();
+    current_second = (byte)second();
+    dotPattern = B11000000;
+  }
+  else if (millis() - half_second_millis > 500)
+  {
+    dotPattern = B00000000;
+  }
 }
 
 void setRTCDateTime(byte h, byte m, byte s, byte d, byte mon, byte y, byte w)
