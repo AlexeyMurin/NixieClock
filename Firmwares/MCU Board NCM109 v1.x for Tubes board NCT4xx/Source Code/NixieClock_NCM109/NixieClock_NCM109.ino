@@ -730,13 +730,13 @@ void doTest()
   parseSong(p);
 
   analogWrite(RedLedPin, 255);
-  delay(1000);
+  delay(100);
   analogWrite(RedLedPin, 0);
   analogWrite(GreenLedPin, 255);
-  delay(1000);
+  delay(100);
   analogWrite(GreenLedPin, 0);
   analogWrite(BlueLedPin, 255);
-  delay(1000);
+  delay(100);
   //while(1);
   Serial.print("Free ram = ");
   Serial.println(freeRam());
@@ -752,7 +752,7 @@ void doTest()
   Serial.print(F("Temp = "));
   Serial.println(celsius);
 
-  int dlay = 500;
+  int dlay = 100;
   bool test = 1;
   byte strIndex = -1;
   unsigned long startOfTest = millis() + 1000; //disable delaying in first iteration
